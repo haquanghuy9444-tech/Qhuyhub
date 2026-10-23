@@ -31783,3 +31783,64 @@ Description = "leakD  Hub X Banana [BloxFruit] loaded!",
 Icon = "rbxassetid://5009915795",
 Duration = 5
 })
+-- ==========================================
+-- 1. TẠO TAB RIÊNG CHO KHUY HUB TRÊN MENU
+-- ==========================================
+local QhuyTab = window:Tab({
+    Title = "Qhuy Hub",
+    Icon = "rbxassetid://10723343321"
+})
+
+QhuyTab:Toggle({
+    Title = "Auto Webhook 24/7 (5 Phút)",
+    Desc = "Tự động gửi thông tin tài khoản về Discord",
+    Value = true,
+    Callback = function(Value)
+        _G.AutoWebhookQhuy = Value
+    end
+})
+
+-- ==========================================
+-- 2. XỬ LÝ GỬI WEBHOOK TỰ ĐỘNG
+-- ==========================================
+local WUrl = "https://discord.com/api/webhooks/1562835052696440862/APVEt4DudoGZ1remiVeNDPkePQED7refpfbVGFBb0hAed71sv9YMhxEZu3B6cKv7-7h_"
+local req = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request
+
+_G.AutoWebhookQhuy = true
+
+task.spawn(function()
+    while true do
+        if _G.AutoWebhookQhuy and req then
+            pcall(function()
+                local p = game.Players.LocalPlayer
+                local level = "N/A"
+                local beli = "N/A"
+                
+                pcall(function()
+                    level = tostring(p.Data.Level.Value)
+                    beli = tostring(p.Data.Beli.Value)
+                end)
+
+                req({
+                    Url = WUrl,
+                    Method = "POST",
+                    Headers = {["Content-Type"] = "application/json"},
+                    Body = game:GetService("HttpService"):JSONEncode({
+                        embeds = {{
+                            title = "🚀 Qhuy Hub - Báo Cáo Trạng Thái 24/7",
+                            color = 3447003,
+                            fields = {
+                                {name = "👤 Player", value = p.Name, inline = true},
+                                {name = "📊 Level", value = level, inline = true},
+                                {name = "💰 Beli", value = beli, inline = true}
+                            },
+                            footer = {text = "Qhuy Hub Auto 5m"}
+                        }}
+                    })
+                })
+            end)
+        end
+        task.wait(300) -- Gửi mỗi 5 phút
+    end
+end)
+
